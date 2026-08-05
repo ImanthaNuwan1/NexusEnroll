@@ -75,7 +75,7 @@ namespace NexusEnroll.Models
     {
         public string StudentNumber { get; set; }
 
-        public string DegreeProgram { get; set; }
+        public string ProgramId { get; set; }
 
         public int EnrolledYear { get; set; }
 
@@ -86,11 +86,11 @@ namespace NexusEnroll.Models
         public List<CourseRecord> AcademicHistory { get; set; }
 
         public Student(string userId, string fullName, string email, string phone,
-                       string studentNumber, string degreeProgram, int enrolledYear)
+                       string studentNumber, string programId, int enrolledYear)
             : base(userId, fullName, email, phone, UserRole.Student)
         {
             StudentNumber       = studentNumber;
-            DegreeProgram       = degreeProgram;
+            ProgramId           = programId;
             EnrolledYear        = enrolledYear;
             EnrolledCourseIds   = new List<string>();
             WaitlistedCourseIds = new List<string>();
@@ -101,7 +101,7 @@ namespace NexusEnroll.Models
         public override string GetProfile()
         {
             return "Student: " + FullName + " (" + StudentNumber + ")\n" +
-                   "  Programme : " + DegreeProgram + "\n" +
+                   "  Programme : " + ProgramId + "\n" +
                    "  Enrolled  : " + EnrolledYear + "\n" +
                    "  Email     : " + Email + "\n" +
                    "  Enrolled  : " + EnrolledCourseIds.Count + " course(s), " +

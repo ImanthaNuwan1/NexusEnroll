@@ -35,6 +35,13 @@ namespace NexusEnroll.Models
         Submitted
     }
 
+    public enum ChangeRequestStatus
+    {
+        Pending,
+        Approved,
+        Rejected
+    }
+
     public static class GradeExtensions
     {
         public static bool IsPassing(this Grade grade)
@@ -128,7 +135,6 @@ namespace NexusEnroll.Models
             GradeStatus            = GradeSubmissionStatus.NotSubmitted;
         }
 
-        /// <summary>Creates a fully-specified course offering.</summary>
         public Course(string courseId, string courseCode, string courseName,
                       string department, int credits, int capacity,
                       string instructorId, string instructorName,
@@ -335,4 +341,84 @@ namespace NexusEnroll.Models
             => "Enrollment[" + StudentId + " -> " + CourseId
                + ", " + Status + ", " + SubmissionStatus + "]";
     }
+
+    public class DegreeProgram
+    {
+        public string ProgramId   { get; set; }
+        public string ProgramName { get; set; }
+        public string Department  { get; set; }
+
+        private readonly List<string> _requiredCourseIds;
+        public IReadOnlyList<string> RequiredCourseIds => _requiredCourseIds;
+
+        private readonly List<string> _electiveCourseIds;
+        public IReadOnlyList<string> ElectiveCourseIds => _electiveCourseIds;
+
+        public DegreeProgram()
+        {
+            _requiredCourseIds = new List<string>();
+            _electiveCourseIds = new List<string>();
+        }
+
+        public DegreeProgram(string programId, string programName, string department)
+            : this()
+        {
+            ProgramId   = programId;
+            ProgramName = programName;
+            Department  = department;
+        }
+
+        public void AddRequiredCourse(string courseId)
+        {
+            if (courseId == null) return;
+            if (!_requiredCourseIds.Contains(courseId))
+                _requiredCourseIds.Add(courseId);
+        }
+
+        public void AddElectiveCourse(string courseId)
+        {
+            if (courseId == null) return;
+            if (!_electiveCourseIds.Contains(courseId))
+                _electiveCourseIds.Add(courseId);
+        }
+
+        public bool IsRequiredCourse(string courseId)
+            => courseId != null && _requiredCourseIds.Contains(courseId);
+
+        public bool IsElectiveCourse(string courseId)
+            => courseId != null && _electiveCourseIds.Contains(courseId);
+    }
+
+    public class CourseChangeRequest
+    {
+        public string RequestId            { get; set; }
+        public string CourseId             { get; set; }
+        public string RequestedByFacultyId { get; set; }
+        public string FieldChanged         { get; set; }   // e.g. "Capacity", "Description"
+        public string OldValue             { get; set; }
+        public string NewValue             { get; set; }
+        public ChangeRequestStatus Status  { get; set; }
+        public string ReviewedByAdminId    { get; set; }
+        public DateTime RequestedAt        { get; set; }
+
+        public CourseChangeRequest()
+        {
+            Status      = ChangeRequestStatus.Pending;
+            RequestedAt = DateTime.UtcNow;
+        }
+
+        public CourseChangeRequest(string requestId, string courseId,
+                                   string facultyId, string fieldChanged,
+                                   string oldValue, string newValue)
+            : this()
+        {
+            RequestId            = requestId;
+            CourseId             = courseId;
+            RequestedByFacultyId = facultyId;
+            FieldChanged         = fieldChanged;
+            OldValue             = oldValue;
+            NewValue             = newValue;
+        }
+    }
+
 }
