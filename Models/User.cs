@@ -70,7 +70,7 @@ namespace NexusEnroll.Models
     }
 
 
-    // Student
+    //  Student
     public class Student : User
     {
         public string StudentNumber { get; set; }
@@ -150,7 +150,7 @@ namespace NexusEnroll.Models
     }
 
 
-    // Faculty
+    //  Faculty
     public class Faculty : User
     {
         public string EmployeeNumber { get; set; }
@@ -199,7 +199,7 @@ namespace NexusEnroll.Models
     }
 
 
-    // Admin
+    //  Administrator
     public class Admin : User
     {
         public string StaffNumber { get; set; }
