@@ -77,11 +77,11 @@ namespace NexusEnroll.Models
             if (other == null) return false;
             if (string.IsNullOrEmpty(Days) || string.IsNullOrEmpty(other.Days)) return false;
 
-            // shared day
+            // Shared day? (any character in common)
             bool shareDay = Days.Any(d => other.Days.IndexOf(d) >= 0);
             if (!shareDay) return false;
 
-            // overlap
+            // Overlapping time interval?
             return StartTime < other.EndTime && other.StartTime < EndTime;
         }
 
@@ -154,7 +154,7 @@ namespace NexusEnroll.Models
             Description      = string.Empty;
         }
 
-        // Capacity
+        // ---- Capacity / enrolment ---------------------------------------
 
         public int AvailableSeats => Math.Max(0, Capacity - EnrolledCount);
 
@@ -179,7 +179,7 @@ namespace NexusEnroll.Models
             return true;
         }
 
-        // Prerequisites
+        // ---- Prerequisites (composition) --------------------------------
 
         public void AddPrerequisite(string prerequisiteCourseId)
         {
@@ -207,7 +207,7 @@ namespace NexusEnroll.Models
             return _prerequisiteCourseIds.All(id => completed.Contains(id));
         }
 
-        // Waitlist
+        // ---- Waitlist (UC5) ---------------------------------------------
 
         public void AddToWaitlist(string studentId)
         {
