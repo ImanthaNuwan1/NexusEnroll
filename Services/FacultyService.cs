@@ -5,9 +5,7 @@ using NexusEnroll.Models;
 
 namespace NexusEnroll.Services
 {
-    // Result types
-
-    /// <summary>One failed grade within a batch submission.</summary>
+    // One failed grade within a batch submission.
     public class GradeError
     {
         public string StudentId { get; set; }
@@ -24,9 +22,7 @@ namespace NexusEnroll.Services
 
             namespace NexusEnroll.Services
             {
-                // Result types
-
-                /// <summary>One failed grade within a batch submission.</summary>
+                // One failed grade within a batch submission.
                 public class GradeError
                 {
                     public string StudentId { get; set; }
@@ -44,13 +40,9 @@ namespace NexusEnroll.Services
                         => $"{StudentId}: '{RawValue}' rejected -- {Reason}";
                 }
 
-                /// <summary>
-                /// Result of a batch grade submission (SRS 3.2.2 use case). Valid grades
-                /// are committed individually; invalid ones are reported here without
-                /// blocking the rest of the batch -- this is what satisfies "the system
-                /// must handle it gracefully and allow the professor to correct it
-                /// without losing other submitted grades."
-                /// </summary>
+                // Result of a batch grade submission (SRS 3.2.2).
+                // Valid grades are committed, invalid ones are reported,
+                // and remaining grades continue processing.
                 public class GradeSubmissionResult
                 {
                     public int TotalSubmitted { get; }
@@ -73,7 +65,7 @@ namespace NexusEnroll.Services
                             : $"{SuccessCount}/{TotalSubmitted} grade(s) submitted. {Errors.Count} rejected -- correct and resubmit only those.";
                 }
 
-                /// <summary>Result of an administrator approving a course's pending grades.</summary>
+                // Result of an administrator approving a course's pending grades.
                 public class GradeApprovalResult
                 {
                     public bool Success { get; }
@@ -88,8 +80,6 @@ namespace NexusEnroll.Services
                     }
                 }
 
-
-                // FacultyService
                 public class FacultyService : IFacultyService
                 {
                     private readonly Dictionary<string, Faculty> _faculty = new Dictionary<string, Faculty>();
@@ -109,8 +99,6 @@ namespace NexusEnroll.Services
                         _notificationService = notificationService
                             ?? throw new ArgumentNullException(nameof(notificationService));
                     }
-
-                    // Setup
 
                     public void RegisterFaculty(Faculty faculty)
                     {
@@ -138,8 +126,6 @@ namespace NexusEnroll.Services
 
                     private static string EnrollmentKey(string studentId, string courseId) => studentId + "|" + courseId;
 
-                    // Roster
-
                     public List<Student> GetClassRoster(string facultyId, string courseId)
                     {
                         VerifyFacultyTeachesCourse(facultyId, courseId);
@@ -150,10 +136,7 @@ namespace NexusEnroll.Services
                             .Where(s => s != null)
                             .OrderBy(s => s.FullName)
                             .ToList();
-                        // students include contact info
                     }
-
-                    // Grading
 
                     public GradeSubmissionResult SubmitGrades(string facultyId, string courseId,
                                                                 Dictionary<string, string> rawGrades)
@@ -171,14 +154,12 @@ namespace NexusEnroll.Services
                             string studentId = entry.Key;
                             string rawValue  = entry.Value;
 
-                            // Rule 1: parse
                             if (string.IsNullOrWhiteSpace(rawValue) || !Enum.TryParse<Grade>(rawValue, true, out var grade))
                             {
                                 errors.Add(new GradeError(studentId, rawValue, "Invalid grade format"));
-                                continue; // other grades remain intact -- keep processing the batch
+                                continue;
                             }
 
-                            // Rule 2: enrollment
                             string key = EnrollmentKey(studentId, courseId);
                             if (!_enrollments.TryGetValue(key, out var enrollment) ||
                                 enrollment.Status != EnrollmentStatus.Enrolled)
@@ -187,7 +168,6 @@ namespace NexusEnroll.Services
                                 continue;
                             }
 
-                            // Rule 3: in-range
                             enrollment.SubmitGradePending(grade);
                             successCount++;
                         }
@@ -207,8 +187,6 @@ namespace NexusEnroll.Services
 
                         return new GradeSubmissionResult(rawGrades.Count, successCount, errors);
                     }
-
-                    // Approval
 
                     public GradeApprovalResult ApproveGrades(string courseId)
                     {
@@ -261,8 +239,6 @@ namespace NexusEnroll.Services
                         return GradeSubmissionStatus.NotSubmitted;
                     }
 
-                    // Course changes
-
                     public CourseChangeRequest RequestCourseUpdate(string facultyId, string courseId,
                                                                      string fieldChanged, string newValue)
                     {
@@ -297,14 +273,11 @@ namespace NexusEnroll.Services
                                 { "Message",     $"Change request {request.RequestId} for {courseId} submitted, awaiting admin approval." }
                             });
 
-                        // Admin handles approval
                         return request;
                     }
 
                     public List<CourseChangeRequest> GetChangeRequestsFor(string facultyId)
                         => _changeRequests.Where(r => r.RequestedByFacultyId == facultyId).ToList();
-
-                    // Schedule
 
                     public List<Course> GetTeachingSchedule(string facultyId)
                     {
@@ -316,8 +289,6 @@ namespace NexusEnroll.Services
                             .OrderBy(c => c.Schedule?.Days)
                             .ToList();
                     }
-
-                    // Helpers
 
                     private void VerifyFacultyTeachesCourse(string facultyId, string courseId)
                     {
