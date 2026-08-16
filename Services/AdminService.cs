@@ -81,6 +81,7 @@ namespace NexusEnroll.Services
             _courses = courseRepository ?? throw new ArgumentNullException(nameof(courseRepository));
             _users = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _changeRequests = changeRequests ?? new List<CourseChangeRequest>();
+            _programs = new Dictionary<string, DegreeProgram>();
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
         }
 
