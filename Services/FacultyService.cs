@@ -15,6 +15,7 @@ namespace NexusEnroll.Services
         public GradeError(string studentId, string rawValue, string reason)
         {
             StudentId = studentId;
+            // @Damika i don't think this is supposed to be here: lines 19 - 24
             using System;
             using System.Collections.Generic;
             using System.Linq;
