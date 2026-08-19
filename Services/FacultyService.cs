@@ -72,15 +72,20 @@ namespace NexusEnroll.Services
         // Enrollments keyed by "studentId|courseId" for quick lookup during grading.
         private readonly Dictionary<string, Enrollment> _enrollments = new Dictionary<string, Enrollment>();
 
-        private readonly List<CourseChangeRequest> _changeRequests = new List<CourseChangeRequest>();
+        // Shared with AdminService so that administrators can see and
+        // approve requests submitted by faculty. The Facade injects the
+        // same IList instance into both services.
+        private readonly IList<CourseChangeRequest> _changeRequests;
 
         private readonly INotificationService _notificationService;
         private int _requestSequence = 0;
 
-        public FacultyService(INotificationService notificationService)
+        public FacultyService(INotificationService notificationService,
+                              IList<CourseChangeRequest> changeRequests = null)
         {
             _notificationService = notificationService
                 ?? throw new ArgumentNullException(nameof(notificationService));
+            _changeRequests = changeRequests ?? new List<CourseChangeRequest>();
         }
 
         public void RegisterFaculty(Faculty faculty)
@@ -93,6 +98,15 @@ namespace NexusEnroll.Services
         {
             if (course == null) throw new ArgumentNullException(nameof(course));
             _courses[course.CourseId] = course;
+
+            // Auto-link course to its instructor's teaching list so that
+            // VerifyFacultyTeachesCourse() and Faculty.TeachesCourse() work
+            // without the caller having to manually call AssignCourse().
+            if (!string.IsNullOrEmpty(course.InstructorId)
+                && _faculty.TryGetValue(course.InstructorId, out var instructor))
+            {
+                instructor.AssignCourse(course.CourseId);
+            }
         }
 
         public void AddStudent(Student student)
