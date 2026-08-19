@@ -1,0 +1,18 @@
+# NexusEnroll Frontend .htaccess
+# Protect sensitive directories
+Options -Indexes
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Redirect to HTTPS (uncomment in production)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# Protect includes folder
+RewriteRule ^includes/ - [F,L]
+
+# PHP settings
+php_value upload_max_filesize 10M
+php_value post_max_size 10M
+php_value max_execution_time 300
