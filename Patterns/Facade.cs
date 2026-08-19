@@ -54,7 +54,7 @@ namespace NexusEnroll.Patterns
             _notificationService = new NotificationService();
             _factoryManager = new UserFactoryManager();
             _studentService = new StudentService();
-            _facultyService = new FacultyService(_notificationService);
+            _facultyService = new FacultyService(_notificationService, _changeRequests);
             _adminService = new AdminService(_courses, _users, _changeRequests, _notificationService);
         }
 
