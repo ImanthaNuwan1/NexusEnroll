@@ -217,6 +217,27 @@ namespace NexusEnroll
             if (GridCatalog.SelectedItem is CourseViewModel courseVM)
             {
                 bool ok = _facade.EnrollStudentInCourse(student.UserId, courseVM.CourseId, out string msg);
+                if (!ok && msg != null && msg.Contains("Prerequisites not met"))
+                {
+                    var course = _facade.GetCourseDetails(courseVM.CourseId);
+                    if (course != null && course.PrerequisiteCourseIds.Count > 0)
+                    {
+                        var passedIds = new HashSet<string>(
+                            student.AcademicHistory
+                                .Where(r => r.Grade.IsPassing())
+                                .Select(r => r.CourseId));
+
+                        var missingPrereqs = course.PrerequisiteCourseIds
+                            .Where(id => !passedIds.Contains(id))
+                            .ToList();
+
+                        if (missingPrereqs.Count > 0)
+                        {
+                            msg = $"Enrollment rejected: Student has not completed required prerequisite course(s): {string.Join(", ", missingPrereqs)} for {courseVM.CourseCode}.";
+                        }
+                    }
+                }
+
                 ShowStatus(msg, !ok);
                 RefreshAllViews();
             }
@@ -506,7 +527,7 @@ namespace NexusEnroll
         private void BtnCreateFaculty_Click(object sender, RoutedEventArgs e)
         {
             if (!ValidateActiveAdmin(out _)) return;
-            var dialog = new CreateFacultyDialog();
+            var dialog = new CreateFacultyDialog(_facade.Courses.Values);
             dialog.Owner = this;
             if (dialog.ShowDialog() == true)
             {
@@ -514,8 +535,8 @@ namespace NexusEnroll
                 {
                     var f = _facade.CreateFacultyAccount(
                         dialog.UserId, dialog.FullName, dialog.Email, dialog.Phone,
-                        dialog.EmployeeNumber, dialog.Department, dialog.Rank);
-                    ShowStatus($"Created Faculty account: {f.FullName} ({f.UserId}).", isError: false);
+                        dialog.EmployeeNumber, dialog.Department, dialog.Rank, dialog.SelectedCourseIds);
+                    ShowStatus($"Created Faculty account: {f.FullName} ({f.UserId}) with {dialog.SelectedCourseIds.Count} assigned course(s).", isError: false);
                     LoadUsers();
                     RefreshAllViews();
                 }
@@ -860,13 +881,15 @@ namespace NexusEnroll
         public string EmployeeNumber => TxtEmployeeNum.Text.Trim();
         public string Department => TxtDepartment.Text.Trim();
         public string Rank => TxtRank.Text.Trim();
+        public List<string> SelectedCourseIds => LstCourses.SelectedItems.OfType<CourseSelectionItem>().Select(i => i.CourseId).ToList();
 
         private TextBox TxtUserId, TxtFullName, TxtEmail, TxtPhone, TxtEmployeeNum, TxtDepartment, TxtRank;
+        private ListBox LstCourses;
 
-        public CreateFacultyDialog()
+        public CreateFacultyDialog(IEnumerable<Course> availableCourses)
         {
             Title = "Create New Faculty Account (Admin)";
-            Width = 440; Height = 440;
+            Width = 460; Height = 540;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
 
@@ -879,6 +902,14 @@ namespace NexusEnroll
             TxtEmployeeNum = AddField(mainStack, "Employee Number:");
             TxtDepartment = AddField(mainStack, "Department:", "Computer Science");
             TxtRank = AddField(mainStack, "Rank (e.g. Senior Lecturer):", "Lecturer");
+
+            mainStack.Children.Add(new TextBlock { Text = "Assign Teaching Courses (Select multiple):", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 2), FontSize = 12 });
+            LstCourses = new ListBox { SelectionMode = SelectionMode.Multiple, Height = 90, DisplayMemberPath = "Display", Margin = new Thickness(0, 0, 0, 8) };
+            if (availableCourses != null)
+            {
+                LstCourses.ItemsSource = availableCourses.Select(c => new CourseSelectionItem { CourseId = c.CourseId, Display = $"[{c.CourseCode}] {c.CourseName} ({c.Department})" }).ToList();
+            }
+            mainStack.Children.Add(LstCourses);
 
             var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
             var btnOk = new Button { Content = "➕ Create Faculty", Width = 130, Height = 30, Margin = new Thickness(0, 0, 8, 0), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D97706")), Foreground = Brushes.White, FontWeight = FontWeights.Bold };
@@ -908,5 +939,11 @@ namespace NexusEnroll
             parent.Children.Add(tb);
             return tb;
         }
+    }
+
+    public class CourseSelectionItem
+    {
+        public string CourseId { get; set; }
+        public string Display { get; set; }
     }
 }
