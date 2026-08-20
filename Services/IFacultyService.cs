@@ -10,6 +10,7 @@ namespace NexusEnroll.Services
         void RegisterFaculty(Faculty faculty);
         void AddCourse(Course course);
         void AddEnrollment(Enrollment enrollment);
+        void RemoveEnrollment(string studentId, string courseId);
         void AddStudent(Student student);
 
         // Roster

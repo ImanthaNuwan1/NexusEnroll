@@ -9,53 +9,11 @@ namespace NexusEnroll
 {
     class Program
     {
+        [STAThread]
         static void Main(string[] args)
         {
-            Console.Title = "NexusEnroll - University Enrollment System";
-            PrintHeader("NEXUSENROLL - UNIVERSITY ENROLLMENT SYSTEM");
-
-            var facade = new UniversityFacade();
-
-            // Attach notification observers (email + SMS + console logging)
-            facade.AttachObserver(new ConsoleNotificationObserver());
-            facade.AttachObserver(new EmailNotificationObserver());
-            facade.AttachObserver(new SmsNotificationObserver());
-
-            SeedUniversityData(facade);
-
-            bool exit = false;
-            while (!exit)
-            {
-                PrintMainMenu();
-                string choice = Console.ReadLine()?.Trim();
-                Console.WriteLine();
-
-                switch (choice)
-                {
-                    case "1":
-                        RunFullAutomatedDemo(facade);
-                        break;
-                    case "2":
-                        StudentPortal(facade);
-                        break;
-                    case "3":
-                        FacultyPortal(facade);
-                        break;
-                    case "4":
-                        AdminPortal(facade);
-                        break;
-                    case "5":
-                        ViewNotificationHistory(facade);
-                        break;
-                    case "0":
-                        exit = true;
-                        Console.WriteLine("Thank you for using NexusEnroll. Goodbye!");
-                        break;
-                    default:
-                        Console.WriteLine("Invalid option. Please enter a number between 0 and 5.");
-                        break;
-                }
-            }
+            var app = new System.Windows.Application();
+            app.Run(new MainWindow());
         }
 
         // =====================================================================

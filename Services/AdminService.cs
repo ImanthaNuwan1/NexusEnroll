@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NexusEnroll.Models;
+using NexusEnroll.Patterns;
 
 namespace NexusEnroll.Services
 {
@@ -18,6 +19,10 @@ namespace NexusEnroll.Services
         bool DeactivateUser(string userId);
         bool ActivateUser(string userId);
         bool ForceEnroll(string studentId, string courseId);
+        Student CreateStudentAccount(UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string studentNumber, string programId, int enrolledYear);
+        Faculty CreateFacultyAccount(UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank, IEnumerable<string> assignedCourseIds = null);
+        bool DeleteStudentAccount(string studentId);
+        bool DeleteFacultyAccount(string facultyId);
 
         // Faculty course-change requests (approval workflow)
         IEnumerable<CourseChangeRequest> GetPendingChangeRequests();
@@ -174,6 +179,117 @@ namespace NexusEnroll.Services
                 { "CourseId", courseId },
                 { "RecipientEmail", student.Email }
             });
+            return true;
+        }
+
+        public Student CreateStudentAccount(Patterns.UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string studentNumber, string programId, int enrolledYear)
+        {
+            if (factoryManager == null) throw new ArgumentNullException(nameof(factoryManager));
+            if (_users.ContainsKey(userId))
+                throw new InvalidOperationException($"User with ID '{userId}' already exists.");
+
+            var student = factoryManager.CreateStudent(userId, fullName, email, phone, studentNumber, programId, enrolledYear);
+            _users[userId] = student;
+
+            _notificationService.NotifyEvent("StudentAccountCreated", new Dictionary<string, object>
+            {
+                { "UserId", userId },
+                { "FullName", fullName },
+                { "RecipientEmail", email },
+                { "RecipientPhone", phone }
+            });
+
+            return student;
+        }
+
+        public Faculty CreateFacultyAccount(Patterns.UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank, IEnumerable<string> assignedCourseIds = null)
+        {
+            if (factoryManager == null) throw new ArgumentNullException(nameof(factoryManager));
+            if (_users.ContainsKey(userId))
+                throw new InvalidOperationException($"User with ID '{userId}' already exists.");
+
+            var faculty = factoryManager.CreateFaculty(userId, fullName, email, phone, employeeNumber, department, rank);
+            _users[userId] = faculty;
+
+            if (assignedCourseIds != null)
+            {
+                foreach (var courseId in assignedCourseIds)
+                {
+                    if (_courses.TryGetValue(courseId, out var course))
+                    {
+                        course.InstructorId = faculty.UserId;
+                        course.InstructorName = faculty.FullName;
+                        faculty.AssignCourse(course.CourseId);
+                    }
+                }
+            }
+
+            _notificationService.NotifyEvent("FacultyAccountCreated", new Dictionary<string, object>
+            {
+                { "UserId", userId },
+                { "FullName", fullName },
+                { "RecipientEmail", email },
+                { "RecipientPhone", phone },
+                { "AssignedCoursesCount", faculty.TeachingCourseIds.Count }
+            });
+
+            return faculty;
+        }
+
+        public bool DeleteStudentAccount(string studentId)
+        {
+            if (!_users.TryGetValue(studentId, out var user) || !(user is Student student))
+                return false;
+
+            // Drop from enrolled courses
+            foreach (var courseId in student.EnrolledCourseIds.ToList())
+            {
+                if (_courses.TryGetValue(courseId, out var course))
+                {
+                    course.Drop();
+                }
+            }
+
+            // Remove from waitlists
+            foreach (var courseId in student.WaitlistedCourseIds.ToList())
+            {
+                if (_courses.TryGetValue(courseId, out var course))
+                {
+                    course.RemoveFromWaitlist(studentId);
+                }
+            }
+
+            _users.Remove(studentId);
+
+            _notificationService.NotifyEvent("StudentAccountDeleted", new Dictionary<string, object>
+            {
+                { "StudentId", studentId },
+                { "StudentName", student.FullName }
+            });
+
+            return true;
+        }
+
+        public bool DeleteFacultyAccount(string facultyId)
+        {
+            if (!_users.TryGetValue(facultyId, out var user) || !(user is Faculty faculty))
+                return false;
+
+            // Unassign from teaching courses
+            foreach (var course in _courses.Values.Where(c => c.InstructorId == facultyId).ToList())
+            {
+                course.InstructorId = null;
+                course.InstructorName = "Unassigned";
+            }
+
+            _users.Remove(facultyId);
+
+            _notificationService.NotifyEvent("FacultyAccountDeleted", new Dictionary<string, object>
+            {
+                { "FacultyId", facultyId },
+                { "FacultyName", faculty.FullName }
+            });
+
             return true;
         }
 
