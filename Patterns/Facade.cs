@@ -395,9 +395,9 @@ namespace NexusEnroll.Patterns
             return student;
         }
 
-        public Faculty CreateFacultyAccount(string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank)
+        public Faculty CreateFacultyAccount(string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank, IEnumerable<string> assignedCourseIds = null)
         {
-            var faculty = _adminService.CreateFacultyAccount(_factoryManager, userId, fullName, email, phone, employeeNumber, department, rank);
+            var faculty = _adminService.CreateFacultyAccount(_factoryManager, userId, fullName, email, phone, employeeNumber, department, rank, assignedCourseIds);
             _facultyService.RegisterFaculty(faculty);
             return faculty;
         }

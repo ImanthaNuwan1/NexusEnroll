@@ -23,7 +23,7 @@ NexusEnroll provides specialized workflows for all core university actors:
 
 ### 🛠️ 3. Administrator Portal
 - **Student Account Creation**: Dynamically manufacture new student user accounts via `UserFactoryManager` (**Factory Method Pattern**).
-- **Faculty Account Creation**: Dynamically manufacture new faculty user accounts via `UserFactoryManager` (**Factory Method Pattern**).
+- **Faculty Account Creation**: Dynamically manufacture new faculty user accounts via `UserFactoryManager` (**Factory Method Pattern**) with multi-course teaching assignments.
 - **Student Account Deletion**: Delete student accounts with automatic cascade cleanup (releasing enrolled course seats and removing waitlist entries).
 - **Faculty Account Deletion**: Delete faculty accounts with automatic cascade unassignment from teaching schedules.
 - **Enrollment & Utilization Analytics**: Generate department-wide enrollment reports highlighting high-capacity utilization courses exceeding threshold percentages (e.g., $\ge 90\%$).

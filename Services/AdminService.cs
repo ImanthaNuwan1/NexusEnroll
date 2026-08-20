@@ -20,7 +20,7 @@ namespace NexusEnroll.Services
         bool ActivateUser(string userId);
         bool ForceEnroll(string studentId, string courseId);
         Student CreateStudentAccount(UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string studentNumber, string programId, int enrolledYear);
-        Faculty CreateFacultyAccount(UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank);
+        Faculty CreateFacultyAccount(UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank, IEnumerable<string> assignedCourseIds = null);
         bool DeleteStudentAccount(string studentId);
         bool DeleteFacultyAccount(string facultyId);
 
@@ -202,7 +202,7 @@ namespace NexusEnroll.Services
             return student;
         }
 
-        public Faculty CreateFacultyAccount(Patterns.UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank)
+        public Faculty CreateFacultyAccount(Patterns.UserFactoryManager factoryManager, string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank, IEnumerable<string> assignedCourseIds = null)
         {
             if (factoryManager == null) throw new ArgumentNullException(nameof(factoryManager));
             if (_users.ContainsKey(userId))
@@ -211,12 +211,26 @@ namespace NexusEnroll.Services
             var faculty = factoryManager.CreateFaculty(userId, fullName, email, phone, employeeNumber, department, rank);
             _users[userId] = faculty;
 
+            if (assignedCourseIds != null)
+            {
+                foreach (var courseId in assignedCourseIds)
+                {
+                    if (_courses.TryGetValue(courseId, out var course))
+                    {
+                        course.InstructorId = faculty.UserId;
+                        course.InstructorName = faculty.FullName;
+                        faculty.AssignCourse(course.CourseId);
+                    }
+                }
+            }
+
             _notificationService.NotifyEvent("FacultyAccountCreated", new Dictionary<string, object>
             {
                 { "UserId", userId },
                 { "FullName", fullName },
                 { "RecipientEmail", email },
-                { "RecipientPhone", phone }
+                { "RecipientPhone", phone },
+                { "AssignedCoursesCount", faculty.TeachingCourseIds.Count }
             });
 
             return faculty;
