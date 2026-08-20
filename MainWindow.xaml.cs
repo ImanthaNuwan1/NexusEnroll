@@ -480,6 +480,83 @@ namespace NexusEnroll
             }
         }
 
+        private void BtnCreateStudent_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateActiveAdmin(out _)) return;
+            var dialog = new CreateStudentDialog();
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var s = _facade.CreateStudentAccount(
+                        dialog.UserId, dialog.FullName, dialog.Email, dialog.Phone,
+                        dialog.StudentNumber, dialog.ProgramId, dialog.EnrolledYear);
+                    ShowStatus($"Created Student account: {s.FullName} ({s.UserId}).", isError: false);
+                    LoadUsers();
+                    RefreshAllViews();
+                }
+                catch (Exception ex)
+                {
+                    ShowStatus($"Failed to create student: {ex.Message}", isError: true);
+                }
+            }
+        }
+
+        private void BtnCreateFaculty_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateActiveAdmin(out _)) return;
+            var dialog = new CreateFacultyDialog();
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true)
+            {
+                try
+                {
+                    var f = _facade.CreateFacultyAccount(
+                        dialog.UserId, dialog.FullName, dialog.Email, dialog.Phone,
+                        dialog.EmployeeNumber, dialog.Department, dialog.Rank);
+                    ShowStatus($"Created Faculty account: {f.FullName} ({f.UserId}).", isError: false);
+                    LoadUsers();
+                    RefreshAllViews();
+                }
+                catch (Exception ex)
+                {
+                    ShowStatus($"Failed to create faculty: {ex.Message}", isError: true);
+                }
+            }
+        }
+
+        private void BtnDeleteUser_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidateActiveAdmin(out _)) return;
+            if (GridUsers.SelectedItem is UserViewModel uVM)
+            {
+                if (uVM.Role == "Admin")
+                {
+                    ShowStatus("Administrator accounts cannot be deleted.", isError: true);
+                    return;
+                }
+
+                var res = MessageBox.Show($"Are you sure you want to delete {uVM.Role} account '{uVM.FullName}' ({uVM.UserId})?", "Confirm Delete Account", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (res == MessageBoxResult.Yes)
+                {
+                    bool ok = false;
+                    if (uVM.Role == "Student")
+                        ok = _facade.DeleteStudentAccount(uVM.UserId);
+                    else if (uVM.Role == "Faculty")
+                        ok = _facade.DeleteFacultyAccount(uVM.UserId);
+
+                    ShowStatus(ok ? $"Deleted {uVM.Role} account for {uVM.FullName}." : "Delete failed.", !ok);
+                    LoadUsers();
+                    RefreshAllViews();
+                }
+            }
+            else
+            {
+                ShowStatus("Select a user from the account table to delete.", isError: true);
+            }
+        }
+
         private void BtnForceEnroll_Click(object sender, RoutedEventArgs e)
         {
             if (!ValidateActiveAdmin(out _)) return;
@@ -710,6 +787,126 @@ namespace NexusEnroll
             mainStack.Children.Add(btnStack);
 
             Content = mainStack;
+        }
+    }
+
+    // Dialog for Creating Student Account
+    public class CreateStudentDialog : Window
+    {
+        public string UserId => TxtUserId.Text.Trim();
+        public string FullName => TxtFullName.Text.Trim();
+        public string Email => TxtEmail.Text.Trim();
+        public string Phone => TxtPhone.Text.Trim();
+        public string StudentNumber => TxtStudentNum.Text.Trim();
+        public string ProgramId => TxtProgramId.Text.Trim();
+        public int EnrolledYear => int.TryParse(TxtEnrolledYear.Text.Trim(), out var y) ? y : DateTime.UtcNow.Year;
+
+        private TextBox TxtUserId, TxtFullName, TxtEmail, TxtPhone, TxtStudentNum, TxtProgramId, TxtEnrolledYear;
+
+        public CreateStudentDialog()
+        {
+            Title = "Create New Student Account (Admin)";
+            Width = 440; Height = 440;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+
+            var mainStack = new StackPanel { Margin = new Thickness(16) };
+
+            TxtUserId = AddField(mainStack, "User ID (e.g. STU005):");
+            TxtFullName = AddField(mainStack, "Full Name:");
+            TxtEmail = AddField(mainStack, "Email:");
+            TxtPhone = AddField(mainStack, "Phone:");
+            TxtStudentNum = AddField(mainStack, "Student Number:");
+            TxtProgramId = AddField(mainStack, "Program ID (e.g. BS-CS):", "BS-CS");
+            TxtEnrolledYear = AddField(mainStack, "Enrolled Year:", DateTime.UtcNow.Year.ToString());
+
+            var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
+            var btnOk = new Button { Content = "➕ Create Student", Width = 130, Height = 30, Margin = new Thickness(0, 0, 8, 0), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2563EB")), Foreground = Brushes.White, FontWeight = FontWeights.Bold };
+            btnOk.Click += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(UserId) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(FullName))
+                {
+                    MessageBox.Show("User ID, Full Name, and Email are required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                DialogResult = true; Close();
+            };
+            var btnCancel = new Button { Content = "Cancel", Width = 80, Height = 30, Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B")), Foreground = Brushes.White };
+            btnCancel.Click += (s, e) => { DialogResult = false; Close(); };
+
+            btnStack.Children.Add(btnOk);
+            btnStack.Children.Add(btnCancel);
+            mainStack.Children.Add(btnStack);
+
+            Content = new ScrollViewer { Content = mainStack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        }
+
+        private TextBox AddField(StackPanel parent, string label, string defaultValue = "")
+        {
+            parent.Children.Add(new TextBlock { Text = label, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 2, 0, 2), FontSize = 12 });
+            var tb = new TextBox { Text = defaultValue, Height = 26, Margin = new Thickness(0, 0, 0, 6) };
+            parent.Children.Add(tb);
+            return tb;
+        }
+    }
+
+    // Dialog for Creating Faculty Account
+    public class CreateFacultyDialog : Window
+    {
+        public string UserId => TxtUserId.Text.Trim();
+        public string FullName => TxtFullName.Text.Trim();
+        public string Email => TxtEmail.Text.Trim();
+        public string Phone => TxtPhone.Text.Trim();
+        public string EmployeeNumber => TxtEmployeeNum.Text.Trim();
+        public string Department => TxtDepartment.Text.Trim();
+        public string Rank => TxtRank.Text.Trim();
+
+        private TextBox TxtUserId, TxtFullName, TxtEmail, TxtPhone, TxtEmployeeNum, TxtDepartment, TxtRank;
+
+        public CreateFacultyDialog()
+        {
+            Title = "Create New Faculty Account (Admin)";
+            Width = 440; Height = 440;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+
+            var mainStack = new StackPanel { Margin = new Thickness(16) };
+
+            TxtUserId = AddField(mainStack, "User ID (e.g. FAC003):");
+            TxtFullName = AddField(mainStack, "Full Name:");
+            TxtEmail = AddField(mainStack, "Email:");
+            TxtPhone = AddField(mainStack, "Phone:");
+            TxtEmployeeNum = AddField(mainStack, "Employee Number:");
+            TxtDepartment = AddField(mainStack, "Department:", "Computer Science");
+            TxtRank = AddField(mainStack, "Rank (e.g. Senior Lecturer):", "Lecturer");
+
+            var btnStack = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 8, 0, 0) };
+            var btnOk = new Button { Content = "➕ Create Faculty", Width = 130, Height = 30, Margin = new Thickness(0, 0, 8, 0), Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D97706")), Foreground = Brushes.White, FontWeight = FontWeights.Bold };
+            btnOk.Click += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(UserId) || string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(FullName))
+                {
+                    MessageBox.Show("User ID, Full Name, and Email are required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                DialogResult = true; Close();
+            };
+            var btnCancel = new Button { Content = "Cancel", Width = 80, Height = 30, Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B")), Foreground = Brushes.White };
+            btnCancel.Click += (s, e) => { DialogResult = false; Close(); };
+
+            btnStack.Children.Add(btnOk);
+            btnStack.Children.Add(btnCancel);
+            mainStack.Children.Add(btnStack);
+
+            Content = new ScrollViewer { Content = mainStack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        }
+
+        private TextBox AddField(StackPanel parent, string label, string defaultValue = "")
+        {
+            parent.Children.Add(new TextBlock { Text = label, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 2, 0, 2), FontSize = 12 });
+            var tb = new TextBox { Text = defaultValue, Height = 26, Margin = new Thickness(0, 0, 0, 6) };
+            parent.Children.Add(tb);
+            return tb;
         }
     }
 }

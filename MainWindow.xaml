@@ -428,8 +428,11 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="6">
-                                <Button Content="🟢 Activate Account" Style="{StaticResource SuccessButton}" Click="BtnActivateUser_Click"/>
-                                <Button Content="🔴 Deactivate Account" Style="{StaticResource DangerButton}" Click="BtnDeactivateUser_Click"/>
+                                <Button Content="➕ Create Student" Click="BtnCreateStudent_Click"/>
+                                <Button Content="➕ Create Faculty" Click="BtnCreateFaculty_Click"/>
+                                <Button Content="🟢 Activate" Style="{StaticResource SuccessButton}" Click="BtnActivateUser_Click"/>
+                                <Button Content="🔴 Deactivate" Style="{StaticResource SecondaryButton}" Click="BtnDeactivateUser_Click"/>
+                                <Button Content="🗑️ Delete Account" Style="{StaticResource DangerButton}" Click="BtnDeleteUser_Click"/>
                             </StackPanel>
                         </Grid>
                     </Border>

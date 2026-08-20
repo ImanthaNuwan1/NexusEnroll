@@ -388,6 +388,30 @@ namespace NexusEnroll.Patterns
             return success;
         }
 
+        public Student CreateStudentAccount(string userId, string fullName, string email, string phone, string studentNumber, string programId, int enrolledYear)
+        {
+            var student = _adminService.CreateStudentAccount(_factoryManager, userId, fullName, email, phone, studentNumber, programId, enrolledYear);
+            _facultyService.AddStudent(student);
+            return student;
+        }
+
+        public Faculty CreateFacultyAccount(string userId, string fullName, string email, string phone, string employeeNumber, string department, string rank)
+        {
+            var faculty = _adminService.CreateFacultyAccount(_factoryManager, userId, fullName, email, phone, employeeNumber, department, rank);
+            _facultyService.RegisterFaculty(faculty);
+            return faculty;
+        }
+
+        public bool DeleteStudentAccount(string studentId)
+        {
+            return _adminService.DeleteStudentAccount(studentId);
+        }
+
+        public bool DeleteFacultyAccount(string facultyId)
+        {
+            return _adminService.DeleteFacultyAccount(facultyId);
+        }
+
         // Factory Method ---
         public Student CreateAndRegisterStudent(string userId, string fullName, string email, string phone,
                                                 string studentNumber, string programId, int enrolledYear)
