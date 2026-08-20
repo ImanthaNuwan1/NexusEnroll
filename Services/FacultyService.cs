@@ -65,9 +65,8 @@ namespace NexusEnroll.Services
 
     public class FacultyService : IFacultyService
     {
-        private readonly Dictionary<string, Faculty> _faculty = new Dictionary<string, Faculty>();
-        private readonly Dictionary<string, Course> _courses = new Dictionary<string, Course>();
-        private readonly Dictionary<string, Student> _students = new Dictionary<string, Student>();
+        private readonly IDictionary<string, User> _users;
+        private readonly IDictionary<string, Course> _courses;
 
         // Enrollments keyed by "studentId|courseId" for quick lookup during grading.
         private readonly Dictionary<string, Enrollment> _enrollments = new Dictionary<string, Enrollment>();
@@ -81,17 +80,21 @@ namespace NexusEnroll.Services
         private int _requestSequence = 0;
 
         public FacultyService(INotificationService notificationService,
-                              IList<CourseChangeRequest> changeRequests = null)
+                               IList<CourseChangeRequest> changeRequests = null,
+                               IDictionary<string, Course> courses = null,
+                               IDictionary<string, User> users = null)
         {
             _notificationService = notificationService
                 ?? throw new ArgumentNullException(nameof(notificationService));
             _changeRequests = changeRequests ?? new List<CourseChangeRequest>();
+            _courses = courses ?? new Dictionary<string, Course>();
+            _users = users ?? new Dictionary<string, User>();
         }
 
         public void RegisterFaculty(Faculty faculty)
         {
             if (faculty == null) throw new ArgumentNullException(nameof(faculty));
-            _faculty[faculty.UserId] = faculty;
+            _users[faculty.UserId] = faculty;
         }
 
         public void AddCourse(Course course)
@@ -103,7 +106,8 @@ namespace NexusEnroll.Services
             // VerifyFacultyTeachesCourse() and Faculty.TeachesCourse() work
             // without the caller having to manually call AssignCourse().
             if (!string.IsNullOrEmpty(course.InstructorId)
-                && _faculty.TryGetValue(course.InstructorId, out var instructor))
+                && _users.TryGetValue(course.InstructorId, out var u)
+                && u is Faculty instructor)
             {
                 instructor.AssignCourse(course.CourseId);
             }
@@ -112,13 +116,19 @@ namespace NexusEnroll.Services
         public void AddStudent(Student student)
         {
             if (student == null) throw new ArgumentNullException(nameof(student));
-            _students[student.UserId] = student;
+            _users[student.UserId] = student;
         }
 
         public void AddEnrollment(Enrollment enrollment)
         {
             if (enrollment == null) throw new ArgumentNullException(nameof(enrollment));
             _enrollments[EnrollmentKey(enrollment.StudentId, enrollment.CourseId)] = enrollment;
+        }
+
+        public void RemoveEnrollment(string studentId, string courseId)
+        {
+            if (studentId == null || courseId == null) return;
+            _enrollments.Remove(EnrollmentKey(studentId, courseId));
         }
 
         private static string EnrollmentKey(string studentId, string courseId) => studentId + "|" + courseId;
@@ -129,7 +139,7 @@ namespace NexusEnroll.Services
 
             return _enrollments.Values
                 .Where(e => e.CourseId == courseId && e.Status == EnrollmentStatus.Enrolled)
-                .Select(e => _students.TryGetValue(e.StudentId, out var s) ? s : null)
+                .Select(e => _users.TryGetValue(e.StudentId, out var u) && u is Student s ? s : null)
                 .Where(s => s != null)
                 .OrderBy(s => s.FullName)
                 .ToList();
@@ -199,13 +209,18 @@ namespace NexusEnroll.Services
             {
                 enrollment.FinaliseGrade();
 
-                if (_students.TryGetValue(enrollment.StudentId, out var student) &&
+                if (_users.TryGetValue(enrollment.StudentId, out var u) && u is Student student &&
                     _courses.TryGetValue(courseId, out var course))
                 {
                     student.RecordCompletedCourse(new CourseRecord(
                         course.CourseId, course.CourseCode, course.CourseName,
                         course.Semester, enrollment.Grade.Value, course.Credits));
                 }
+            }
+
+            if (_courses.TryGetValue(courseId, out var c))
+            {
+                c.GradeStatus = GetGradeStatus(courseId);
             }
 
             _notificationService.NotifyEvent(
@@ -278,7 +293,7 @@ namespace NexusEnroll.Services
 
         public List<Course> GetTeachingSchedule(string facultyId)
         {
-            if (!_faculty.ContainsKey(facultyId))
+            if (!_users.ContainsKey(facultyId))
                 throw new KeyNotFoundException($"Faculty '{facultyId}' not found.");
 
             return _courses.Values
@@ -289,7 +304,7 @@ namespace NexusEnroll.Services
 
         private void VerifyFacultyTeachesCourse(string facultyId, string courseId)
         {
-            if (!_faculty.TryGetValue(facultyId, out var faculty))
+            if (!_users.TryGetValue(facultyId, out var u) || !(u is Faculty faculty))
                 throw new KeyNotFoundException($"Faculty '{facultyId}' not found.");
 
             if (!_courses.ContainsKey(courseId))
