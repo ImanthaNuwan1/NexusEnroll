@@ -54,7 +54,7 @@ namespace NexusEnroll.Patterns
             _notificationService = new NotificationService();
             _factoryManager = new UserFactoryManager();
             _studentService = new StudentService();
-            _facultyService = new FacultyService(_notificationService, _changeRequests);
+            _facultyService = new FacultyService(_notificationService, _changeRequests, _courses, _users);
             _adminService = new AdminService(_courses, _users, _changeRequests, _notificationService);
         }
 
@@ -238,6 +238,8 @@ namespace NexusEnroll.Patterns
             bool dropped = _studentService.DropCourse(student, course, out message);
             if (!dropped) return false;
 
+            _facultyService.RemoveEnrollment(studentId, courseId);
+
             // Notify dropping student
             _notificationService.NotifyEvent("CourseDroppedEvent", new Dictionary<string, object>
             {
@@ -268,6 +270,12 @@ namespace NexusEnroll.Patterns
                             { "Message", $"A seat opened in {course.CourseCode}! You have been promoted from waitlist to enrolled." }
                         });
                         message += $" Auto-promoted waitlisted student: {promotedStudent.FullName}.";
+                    }
+                    else
+                    {
+                        // Restore waitlist status if promotion failed
+                        course.AddToWaitlist(nextStudentId);
+                        promotedStudent.WaitlistForCourse(course.CourseId);
                     }
                 }
             }
@@ -371,7 +379,13 @@ namespace NexusEnroll.Patterns
 
         public bool ForceEnrollStudent(string studentId, string courseId)
         {
-            return _adminService.ForceEnroll(studentId, courseId);
+            bool success = _adminService.ForceEnroll(studentId, courseId);
+            if (success && _users.TryGetValue(studentId, out var u) && u is Student s)
+            {
+                _facultyService.AddStudent(s);
+                _facultyService.AddEnrollment(new Enrollment(Guid.NewGuid().ToString(), studentId, courseId));
+            }
+            return success;
         }
 
         // Factory Method ---
