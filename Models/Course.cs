@@ -77,37 +77,12 @@ namespace NexusEnroll.Models
             if (other == null) return false;
             if (string.IsNullOrEmpty(Days) || string.IsNullOrEmpty(other.Days)) return false;
 
-            var myDays = ParseDays(Days);
-            var otherDays = ParseDays(other.Days);
-            bool shareDay = myDays.Overlaps(otherDays);
+            // Shared day? (any character in common)
+            bool shareDay = Days.Any(d => other.Days.IndexOf(d) >= 0);
             if (!shareDay) return false;
 
             // Overlapping time interval?
             return StartTime < other.EndTime && other.StartTime < EndTime;
-        }
-
-        private static HashSet<string> ParseDays(string daysStr)
-        {
-            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            if (string.IsNullOrEmpty(daysStr)) return set;
-
-            int i = 0;
-            while (i < daysStr.Length)
-            {
-                if (i + 1 < daysStr.Length && (daysStr.Substring(i, 2).Equals("Th", StringComparison.OrdinalIgnoreCase) ||
-                                               daysStr.Substring(i, 2).Equals("Sa", StringComparison.OrdinalIgnoreCase) ||
-                                               daysStr.Substring(i, 2).Equals("Su", StringComparison.OrdinalIgnoreCase)))
-                {
-                    set.Add(daysStr.Substring(i, 2));
-                    i += 2;
-                }
-                else
-                {
-                    set.Add(daysStr[i].ToString());
-                    i++;
-                }
-            }
-            return set;
         }
 
         public override string ToString()
