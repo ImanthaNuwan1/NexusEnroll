@@ -1,8 +1,27 @@
-bin/
-obj/
-.DS_Store
+# Build & Output Directories
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+**/bin/
+**/obj/
+
+# Database Files
 *.db
 *.db-shm
 *.db-wal
+
+# Large Executables & Installers
+*.exe
+erlang.exe
+
+# IDE & User-specific Files
 .vs/
-microservices/
+.vscode/
+*.user
+*.userosscache
+*.suo
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
