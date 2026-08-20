@@ -1,0 +1,489 @@
+<Window x:Class="NexusEnroll.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="NexusEnroll - University Enrollment System" Height="780" Width="1100"
+        WindowStartupLocation="CenterScreen" Background="#F4F6F9" FontFamily="Segoe UI">
+    <Window.Resources>
+        <!-- Primary Color Palette -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#1E293B"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="AccentHoverBrush" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#16A34A"/>
+        <SolidColorBrush x:Key="DangerBrush" Color="#DC2626"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#D97706"/>
+        <SolidColorBrush x:Key="CardBackground" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BorderBrushLight" Color="#E2E8F0"/>
+
+        <!-- Button Style -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="#64748B"/>
+        </Style>
+
+        <!-- Success Button Style -->
+        <Style x:Key="SuccessButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource SuccessBrush}"/>
+        </Style>
+
+        <!-- Danger Button Style -->
+        <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+        </Style>
+
+        <!-- Card Style -->
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrushLight}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="6"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Header Bar -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryBrush}" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="🎓 NEXUSENROLL" FontSize="20" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBlock Text=" University Enrollment System" FontSize="14" Foreground="#94A3B8" VerticalAlignment="Center" Margin="8,2,0,0"/>
+                </StackPanel>
+
+                <!-- Active User Selector -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Active User: " Foreground="White" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="CmbUsers" Width="280" Height="30" SelectionChanged="CmbUsers_SelectionChanged" DisplayMemberPath="DisplayName"/>
+                    <Border x:Name="BadgeRole" Background="{StaticResource AccentBrush}" CornerRadius="12" Padding="8,3" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtRoleBadge" Text="Role" Foreground="White" FontWeight="Bold" FontSize="11"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Status Toast Banner -->
+        <Border Grid.Row="1" x:Name="BannerStatus" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="0,0,0,1" Padding="12,8" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="TxtStatusIcon" Text="ℹ️" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="TxtStatusMessage" Text="Ready" Foreground="#1E40AF" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Main Tab Area -->
+        <TabControl Grid.Row="2" Margin="10" Background="Transparent" BorderThickness="0">
+
+            <!-- ============================================================ -->
+            <!-- TAB 1: STUDENT PORTAL -->
+            <!-- ============================================================ -->
+            <TabItem Header=" 👨‍🎓 Student Portal ">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="180"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Catalog Search Filters -->
+                    <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Department:" VerticalAlignment="Center" Margin="0,0,6,0" FontWeight="SemiBold"/>
+                            <TextBox Grid.Column="1" x:Name="TxtFilterDept" Height="28" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+
+                            <TextBlock Grid.Column="2" Text="Keyword:" VerticalAlignment="Center" Margin="0,0,6,0" FontWeight="SemiBold"/>
+                            <TextBox Grid.Column="3" x:Name="TxtFilterKeyword" Height="28" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+
+                            <TextBlock Grid.Column="4" Text="Instructor:" VerticalAlignment="Center" Margin="0,0,6,0" FontWeight="SemiBold"/>
+                            <TextBox Grid.Column="5" x:Name="TxtFilterInstructor" Height="28" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
+
+                            <Button Grid.Column="6" Content="🔍 Search Catalog" Click="BtnSearchCatalog_Click" Height="30"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Course Catalog Table -->
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Background="#F1F5F9" Padding="10,6" CornerRadius="6,6,0,0">
+                                <TextBlock Text="Available Course Catalog" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                            </Border>
+                            <DataGrid Grid.Row="1" x:Name="GridCatalog" AutoGenerateColumns="False" IsReadOnly="True" 
+                                      SelectionMode="Single" GridLinesVisibility="Horizontal" HeadersVisibility="Column" Background="White">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding CourseCode}" Width="80"/>
+                                    <DataGridTextColumn Header="Course Name" Binding="{Binding CourseName}" Width="*"/>
+                                    <DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="140"/>
+                                    <DataGridTextColumn Header="Credits" Binding="{Binding Credits}" Width="60"/>
+                                    <DataGridTextColumn Header="Schedule" Binding="{Binding Schedule}" Width="160"/>
+                                    <DataGridTextColumn Header="Instructor" Binding="{Binding InstructorName}" Width="140"/>
+                                    <DataGridTextColumn Header="Enrolled" Binding="{Binding EnrolledDisplay}" Width="80"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="70"/>
+                                    <DataGridTextColumn Header="Waitlist" Binding="{Binding WaitlistCountDisplay}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+
+                    <!-- Action Bar -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,8">
+                        <Button Content="✅ Enroll in Selected Course" Style="{StaticResource SuccessButton}" Click="BtnEnroll_Click" Height="34"/>
+                        <Button Content="⏳ Join Waitlist" Style="{StaticResource SecondaryButton}" Click="BtnJoinWaitlist_Click" Height="34"/>
+                        <Button Content="❌ Drop Selected Course" Style="{StaticResource DangerButton}" Click="BtnDrop_Click" Height="34"/>
+                    </StackPanel>
+
+                    <!-- Student Info Sub-Tabs -->
+                    <TabControl Grid.Row="3">
+                        <TabItem Header="My Enrolled Schedule">
+                            <DataGrid x:Name="GridStudentSchedule" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding CourseCode}" Width="90"/>
+                                    <DataGridTextColumn Header="Course Name" Binding="{Binding CourseName}" Width="*"/>
+                                    <DataGridTextColumn Header="Schedule" Binding="{Binding Schedule}" Width="200"/>
+                                    <DataGridTextColumn Header="Instructor" Binding="{Binding InstructorName}" Width="160"/>
+                                    <DataGridTextColumn Header="Capacity" Binding="{Binding EnrolledDisplay}" Width="90"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+                        <TabItem Header="Academic History">
+                            <DataGrid x:Name="GridAcademicHistory" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Code" Binding="{Binding CourseCode}" Width="90"/>
+                                    <DataGridTextColumn Header="Course Name" Binding="{Binding CourseName}" Width="*"/>
+                                    <DataGridTextColumn Header="Semester" Binding="{Binding Semester}" Width="120"/>
+                                    <DataGridTextColumn Header="Grade" Binding="{Binding Grade}" Width="80"/>
+                                    <DataGridTextColumn Header="Result" Binding="{Binding ResultDisplay}" Width="100"/>
+                                    <DataGridTextColumn Header="Credits" Binding="{Binding Credits}" Width="70"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+                        <TabItem Header="Degree Audit">
+                            <Border Padding="12">
+                                <StackPanel>
+                                    <TextBlock x:Name="TxtDegreeAuditTitle" Text="Degree Audit Program: BS-CS" FontWeight="Bold" FontSize="14" Margin="0,0,0,6"/>
+                                    <TextBlock x:Name="TxtDegreeAuditSummary" Text="Remaining required courses:" Foreground="#475569" Margin="0,0,0,8"/>
+                                    <ListBox x:Name="LstDegreeAudit" Height="80"/>
+                                </StackPanel>
+                            </Border>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </TabItem>
+
+            <!-- ============================================================ -->
+            <!-- TAB 2: FACULTY PORTAL -->
+            <!-- ============================================================ -->
+            <TabItem Header=" 👩‍🏫 Faculty Portal ">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Column: Teaching Schedule & Change Requests -->
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Background="#F1F5F9" Padding="10,6" CornerRadius="6,6,0,0">
+                                    <TextBlock Text="My Teaching Schedule" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                                </Border>
+                                <ListBox Grid.Row="1" x:Name="LstFacultyCourses" SelectionChanged="LstFacultyCourses_SelectionChanged" DisplayMemberPath="CourseCodeAndName" Margin="4"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Course Update Request Form -->
+                        <Border Grid.Row="1" Style="{StaticResource CardStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Request Course Update" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBlock Text="Field to Change:" FontSize="11" Foreground="#64748B"/>
+                                <ComboBox x:Name="CmbChangeField" Height="26" Margin="0,2,0,6">
+                                    <ComboBoxItem Content="Capacity" IsSelected="True"/>
+                                    <ComboBoxItem Content="Description"/>
+                                    <ComboBoxItem Content="CourseName"/>
+                                </ComboBox>
+                                <TextBlock Text="New Value:" FontSize="11" Foreground="#64748B"/>
+                                <TextBox x:Name="TxtNewFieldValue" Height="26" Margin="0,2,0,8"/>
+                                <Button Content="📤 Submit Change Request" Click="BtnSubmitChangeRequest_Click"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Right Column: Class Roster & Batch Grading -->
+                    <Grid Grid.Column="1" Margin="6,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Header & Grade Status -->
+                        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock x:Name="TxtSelectedCourseHeader" Text="Class Roster - Select a Course" FontSize="14" FontWeight="Bold"/>
+                                    <TextBlock x:Name="TxtGradeStatus" Text="Grade Submission Status: Not Submitted" Foreground="#64748B" FontSize="12"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="📝 Submit Batch Grades" Style="{StaticResource SuccessButton}" Click="BtnSubmitBatchGrades_Click" Height="32"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Student Roster & Grade Input Grid -->
+                        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="0">
+                            <DataGrid x:Name="GridClassRoster" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="Horizontal" HeadersVisibility="Column">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Student ID" Binding="{Binding StudentId}" IsReadOnly="True" Width="100"/>
+                                    <DataGridTextColumn Header="Student Name" Binding="{Binding FullName}" IsReadOnly="True" Width="*"/>
+                                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" IsReadOnly="True" Width="180"/>
+                                    <DataGridTextColumn Header="Program" Binding="{Binding ProgramId}" IsReadOnly="True" Width="90"/>
+                                    <DataGridTextColumn Header="Grade (A,B,C,D,F,W,I)" Binding="{Binding GradeInput, UpdateSourceTrigger=PropertyChanged}" Width="160"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Border>
+
+                        <!-- Submitted Requests Table -->
+                        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="My Submitted Change Requests" FontWeight="Bold" Margin="0,0,0,6"/>
+                                <DataGrid x:Name="GridFacultyRequests" AutoGenerateColumns="False" IsReadOnly="True" Height="100" GridLinesVisibility="Horizontal">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Request ID" Binding="{Binding RequestId}" Width="100"/>
+                                        <DataGridTextColumn Header="Course" Binding="{Binding CourseId}" Width="90"/>
+                                        <DataGridTextColumn Header="Field" Binding="{Binding FieldChanged}" Width="100"/>
+                                        <DataGridTextColumn Header="Old Value" Binding="{Binding OldValue}" Width="100"/>
+                                        <DataGridTextColumn Header="New Value" Binding="{Binding NewValue}" Width="100"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <!-- ============================================================ -->
+            <!-- TAB 3: ADMINISTRATOR PORTAL -->
+            <!-- ============================================================ -->
+            <TabItem Header=" 🛠️ Administrator Portal ">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Top Controls: Enrollment Utilization Report -->
+                    <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="80"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" Text="Department:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                            <ComboBox Grid.Column="1" x:Name="CmbReportDept" Height="28" IsEditable="True"/>
+
+                            <TextBlock Grid.Column="2" Text="Threshold %:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="12,0,8,0"/>
+                            <TextBox Grid.Column="3" x:Name="TxtReportThreshold" Text="90" Height="28" VerticalContentAlignment="Center"/>
+
+                            <Button Grid.Column="4" Content="📊 Generate Enrollment Report" Click="BtnGenerateReport_Click" Height="30" Margin="12,0,0,0"/>
+
+                            <StackPanel Grid.Column="5" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="⚡ Force Enroll Override" Style="{StaticResource SecondaryButton}" Click="BtnForceEnroll_Click" Height="30"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Middle Content Split: Pending Requests & Report Output -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Pending Change Requests -->
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,4,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Border Background="#F1F5F9" Padding="10,6" CornerRadius="6,6,0,0">
+                                    <TextBlock Text="Pending Faculty Course Change Requests" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                                </Border>
+                                <DataGrid Grid.Row="1" x:Name="GridPendingRequests" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="ID" Binding="{Binding RequestId}" Width="80"/>
+                                        <DataGridTextColumn Header="Course" Binding="{Binding CourseId}" Width="70"/>
+                                        <DataGridTextColumn Header="Faculty" Binding="{Binding RequestedByFacultyId}" Width="80"/>
+                                        <DataGridTextColumn Header="Field" Binding="{Binding FieldChanged}" Width="90"/>
+                                        <DataGridTextColumn Header="Old" Binding="{Binding OldValue}" Width="80"/>
+                                        <DataGridTextColumn Header="New" Binding="{Binding NewValue}" Width="80"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="6">
+                                    <Button Content="✅ Approve Request" Style="{StaticResource SuccessButton}" Click="BtnApproveRequest_Click"/>
+                                    <Button Content="❌ Reject Request" Style="{StaticResource DangerButton}" Click="BtnRejectRequest_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Enrollment Report Output Card -->
+                        <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="10" Margin="4,0,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Department Analytics &amp; Capacity Utilization Report" FontWeight="Bold" Margin="0,0,0,8"/>
+                                <TextBox Grid.Row="1" x:Name="TxtReportOutput" IsReadOnly="True" VerticalScrollBarVisibility="Auto" 
+                                         FontFamily="Consolas" FontSize="12" Background="#F8FAFC" BorderThickness="1" BorderBrush="#CBD5E1"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- User Account Management Table -->
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="0" Margin="0,8,0,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="120"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Border Background="#F1F5F9" Padding="10,6" CornerRadius="6,6,0,0">
+                                <TextBlock Text="User Account Lifecycle Management" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+                            </Border>
+                            <DataGrid Grid.Row="1" x:Name="GridUsers" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="User ID" Binding="{Binding UserId}" Width="90"/>
+                                    <DataGridTextColumn Header="Full Name" Binding="{Binding FullName}" Width="*"/>
+                                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="200"/>
+                                    <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="90"/>
+                                    <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="90"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="6">
+                                <Button Content="➕ Create Student" Click="BtnCreateStudent_Click"/>
+                                <Button Content="➕ Create Faculty" Click="BtnCreateFaculty_Click"/>
+                                <Button Content="🟢 Activate" Style="{StaticResource SuccessButton}" Click="BtnActivateUser_Click"/>
+                                <Button Content="🔴 Deactivate" Style="{StaticResource SecondaryButton}" Click="BtnDeactivateUser_Click"/>
+                                <Button Content="🗑️ Delete Account" Style="{StaticResource DangerButton}" Click="BtnDeleteUser_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- ============================================================ -->
+            <!-- TAB 4: NOTIFICATION EVENT LOG -->
+            <!-- ============================================================ -->
+            <TabItem Header=" 🔔 Notification History ">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Real-Time Event Observer Stream" FontWeight="Bold" FontSize="14"/>
+                                <TextBlock Text="Live notifications dispatched via Observer Pattern (Console, Email, SMS, GUI channels)" Foreground="#64748B" FontSize="12"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="🔄 Refresh Feed" Click="BtnRefreshNotifications_Click" Height="30"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="0" Margin="0,8,0,0">
+                        <DataGrid x:Name="GridNotifications" AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Timestamp" Binding="{Binding TimestampDisplay}" Width="140"/>
+                                <DataGridTextColumn Header="Event Type" Binding="{Binding EventType}" Width="180"/>
+                                <DataGridTextColumn Header="Recipient" Binding="{Binding RecipientDisplay}" Width="200"/>
+                                <DataGridTextColumn Header="Event Summary / Details" Binding="{Binding DetailsDisplay}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- Bottom Footer Status Strip -->
+        <Border Grid.Row="3" Background="#E2E8F0" Padding="12,4">
+            <Grid>
+                <TextBlock Text="NexusEnroll v2.0 - .NET 9 WPF Desktop Client" FontSize="11" Foreground="#475569"/>
+                <TextBlock Text="System Status: Connected | All Observers Active" FontSize="11" Foreground="#475569" HorizontalAlignment="Right"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
