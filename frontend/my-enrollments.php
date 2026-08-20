@@ -17,8 +17,9 @@ if ($enrollments['code'] !== 200 || empty($enrollments['data'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['drop_id'])) {
-    $drop_id = intval($_POST['drop_id']);
-    $result = api_call('/enrollments/' . $drop_id, 'DELETE', null, $_SESSION['token'] ?? null);
+    $drop_id = trim($_POST['drop_id']);
+    $endpoint = '/enrollments/' . urlencode($drop_id) . '?userId=' . urlencode($_SESSION['user']['id']);
+    $result = api_call($endpoint, 'DELETE', null, $_SESSION['token'] ?? null);
 
     if ($result['code'] === 200 || $result['code'] === 204) {
         set_flash('success', 'Enrollment dropped successfully.');

@@ -337,7 +337,7 @@ body {
 .auth-footer code { background: var(--gray-100); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
 
 /* ── Forms ── */
-.form { max-width: 500px; }
+.form { max-width: 500px; padding: 24px; }
 .form .form-group { margin-bottom: 20px; }
 
 /* ── Footer ── */

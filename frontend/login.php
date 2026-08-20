@@ -82,7 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="submit" class="btn-primary full">Sign In</button>
         </form>
         <div class="auth-footer">
-            <p>Demo: <code>demo@nexus.com</code> / <code>demo123</code></p>
+            <p>Offline demo: <code>demo@nexus.com</code> / <code>demo123</code></p>
+            <p>Backend running? Try <code>john.doe@nexus.edu</code> (any password) — see <code>backend/Program.cs</code> for more seeded accounts.</p>
             <p>Don't have an account? <a href="register.php">Register here</a></p>
         </div>
     </div>

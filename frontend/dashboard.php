@@ -5,8 +5,9 @@ require_auth();
 $page_title = 'Dashboard';
 
 // Fetch data from C# backend
-$stats = api_call('/dashboard/stats', 'GET', null, $_SESSION['token'] ?? null);
-$recent = api_call('/enrollments/recent', 'GET', null, $_SESSION['token'] ?? null);
+$uid = urlencode($_SESSION['user']['id']);
+$stats = api_call('/dashboard/stats?userId=' . $uid, 'GET', null, $_SESSION['token'] ?? null);
+$recent = api_call('/enrollments/recent?userId=' . $uid, 'GET', null, $_SESSION['token'] ?? null);
 
 // Fallback demo data if backend not ready
 if ($stats['code'] !== 200 || empty($stats['data'])) {

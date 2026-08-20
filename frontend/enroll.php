@@ -19,7 +19,7 @@ if ($courses['code'] !== 200 || empty($courses['data'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['course_id'])) {
-    $course_id = intval($_POST['course_id']);
+    $course_id = trim($_POST['course_id']);
 
     $result = api_call('/enrollments', 'POST', [
         'userId' => $_SESSION['user']['id'],

@@ -8,7 +8,9 @@ define('DB_PASS', '');
 define('DB_NAME', 'nexusenroll_db');
 
 // C# Backend API Base URL (your .NET app should expose REST endpoints)
-define('API_BASE_URL', 'http://localhost:5000/api');
+// Override with the API_BASE_URL environment variable if the backend isn't
+// reachable at localhost from wherever PHP is running.
+define('API_BASE_URL', getenv('API_BASE_URL') ?: 'http://localhost:5000/api');
 define('API_KEY', 'your-api-key-here'); // Optional: if your C# backend requires an API key
 
 // ── App Settings ──
